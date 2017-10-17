@@ -949,6 +949,20 @@ func NewConn(raddr string, block BlockCrypt, dataShards, parityShards int, conn 
 	return newUDPSession(convid, dataShards, parityShards, nil, conn, udpaddr, block), nil
 }
 
+func NewConnEx(convid uint32, connected bool, raddr string, block BlockCrypt, dataShards, parityShards int, conn *net.UDPConn) (*UDPSession, error) {
+	udpaddr, err := net.ResolveUDPAddr("udp", raddr)
+	if err != nil {
+		return nil, errors.Wrap(err, "net.ResolveUDPAddr")
+	}
+
+	var pConn net.PacketConn = conn
+	if connected {
+		pConn = &connectedUDPConn{conn}
+	}
+
+	return newUDPSession(convid, dataShards, parityShards, nil, pConn, udpaddr, block), nil
+}
+
 // returns current time in milliseconds
 func currentMs() uint32 { return uint32(time.Now().UnixNano() / int64(time.Millisecond)) }
 
